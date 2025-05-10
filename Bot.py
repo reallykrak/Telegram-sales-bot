@@ -1,67 +1,76 @@
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+import os
 
-# Ana Menü
-main_menu = [['Ürünler', 'Sipariş Ver'], ['Hakkında']]
+# Telegram kullanıcı ID'n (admin komutları için)
+ADMIN_ID = 8121637254  # BURAYA KENDİ TELEGRAM ID'NI YAZ
 
-# Ürün Listesi
-urunler = {
-    "Discord Nitro": 25,
-    "Spotify Premium": 15,
-    "Netflix": 30
-}
+# Ana Menü Butonları
+main_menu = [
+    ["💰Ödeme Seçenekleri", "💢Keys"],
+    ["🎁Hediye", "📊İstatistikler"],
+    ["📱Botu Güncelle"]
+]
 
-ADMIN_ID = 8121637254 # Kendi Telegram ID'n ile değiştir
+# Keys Alt Menüsü
+keys_menu = [
+    ["King Mod", "Shield"],
+    ["Zolo", "Khan"],
+    ["Soi7", "Ana Menü"]
+]
 
+# /start komutu
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Hoş geldin! Menüden seçim yapabilirsin:",
+        "Hoş geldin! Lütfen bir seçenek seç:",
         reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
     )
 
+# Tüm mesajlara yanıt veren ana fonksiyon
 async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
-    if text == "Ürünler":
-        liste = "\n".join([f"- {ad}: {fiyat}₺" for ad, fiyat in urunler.items()])
-        await update.message.reply_text(f"Satıştaki ürünler:\n\n{liste}")
-    elif text == "Hakkında":
-        await update.message.reply_text("Bu bot lisans key satışı için tasarlanmıştır.")
-    elif text == "Sipariş Ver":
-        urun_menu = [[urun] for urun in urunler.keys()]
+    if text == "💰Ödeme Seçenekleri":
+        await update.message.reply_text("Ödeme bilgileri:\n\n- Papara: 1234567890\n- BTC: bc1qexample\n- İletişim: @reallykrak")
+
+    elif text == "💢Keys":
         await update.message.reply_text(
-            "Hangi ürünü almak istersin?",
-            reply_markup=ReplyKeyboardMarkup(urun_menu, resize_keyboard=True)
+            "Lütfen almak istediğiniz key'i seçin:",
+            reply_markup=ReplyKeyboardMarkup(keys_menu, resize_keyboard=True)
         )
-    elif text in urunler:
-        key = ver_key(text)
-        if key:
-            await update.message.reply_text(f"Tebrikler! İşte ürünün keyi:\n\n`{key}`", parse_mode="Markdown")
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=f"Yeni sipariş!\n\nKullanıcı: @{update.effective_user.username or 'Anonim'}\nID: {update.effective_user.id}\nÜrün: {text}\nKey: {key}"
-            )
+
+    elif text == "Ana Menü":
+        await start(update, context)
+
+    elif text in ["King Mod", "Shield", "Zolo", "Khan", "Soi7"]:
+        await update.message.reply_text(f"{text} için bilgiler:\n\nFiyat: 25₺\nStok: Var\nSatın almak için @reallykrak ile iletişime geçin.")
+
+    elif text == "🎁Hediye":
+        await update.message.reply_text("Lütfen hediye kodunu yaz:")
+        context.user_data['awaiting_gift'] = True
+
+    elif text == "📊İstatistikler":
+        await update.message.reply_text("Bot İstatistikleri:\n\nToplam Kullanıcı: 128\nToplam Satış: 42\nAktif Key: 16")
+
+    elif text == "📱Botu Güncelle":
+        if update.effective_user.id == ADMIN_ID:
+            await update.message.reply_text("Bot yeniden başlatılıyor...")
+            os.system("kill 1")  # VPS veya Termux ortamına göre değişebilir
         else:
-            await update.message.reply_text("Üzgünüz, bu ürün stokta yok.")
+            await update.message.reply_text("Bu komut yalnızca yöneticilere özeldir.")
+
+    elif context.user_data.get("awaiting_gift"):
+        context.user_data['awaiting_gift'] = False
+        kod = text.strip()
+        if kod == "FREE193":  # örnek kod
+            await update.message.reply_text("Tebrikler! Kod doğru. 1 ürün ücretsiz kazandınız.")
+        else:
+            await update.message.reply_text("Üzgünüm, geçersiz kod girdiniz.")
+
     else:
-        await update.message.reply_text("Geçerli bir seçim yap lütfen.")
+        await update.message.reply_text("Geçerli bir seçenek seçin.")
 
-def ver_key(urun_adi):
-    try:
-        with open("keys.txt", "r") as f:
-            satirlar = f.readlines()
-
-        for i, line in enumerate(satirlar):
-            ad, key = line.strip().split(":", 1)
-            if ad == urun_adi:
-                del satirlar[i]
-                with open("keys.txt", "w") as f:
-                    f.writelines(satirlar)
-                return key
-        return None
-    except FileNotFoundError:
-        return None
-
+# Ana çalıştırma
 if __name__ == '__main__':
     app = ApplicationBuilder().token("7982398630:AAHlh2apXUtrdaOv44_P7sRka0HelKtFlnk").build()
 
