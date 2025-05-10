@@ -1,3 +1,1 @@
-python-telegram-bot
-json
-logging
+aiogram
