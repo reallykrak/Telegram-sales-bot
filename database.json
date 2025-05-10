@@ -1,9 +1,0 @@
-{
-    "users": {
-        "12345678": {
-            "name": "Tolunay",
-            "purchases": ["Premium Key"],
-            "referrals": 5
-        }
-    }
-}
