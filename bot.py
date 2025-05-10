@@ -3,7 +3,7 @@ from handlers import start_handler, purchase_handler, order_history_handler, sho
 from admin_panel import admin_commands
 from menu import main_menu_handler
 
-updater = Updater("YOUR_BOT_TOKEN")
+updater = Updater("7656355783:AAF7_PXEx8YeCNxCeJiqvgv8lTBzlkf6AIw")
 dispatcher = updater.dispatcher
 
 # Kullanıcı komutları
