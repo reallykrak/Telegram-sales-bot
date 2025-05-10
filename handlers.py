@@ -1,7 +1,16 @@
-from aiogram import Dispatcher, types
+import keyboards
 
-async def button_handler(call: types.CallbackQuery):
-    await call.message.answer("denem1234 baba")
+def register_handlers(bot):
+    # /start komutunu yakala ve kullanıcıya menüyü göster
+    @bot.message_handler(commands=['start'])
+    def start_handler(message):
+        bot.send_message(
+            message.chat.id, 
+            "Merhaba! Butona bas ve mesajı al!", 
+            reply_markup=keyboards.main_menu()
+        )
 
-def register_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(button_handler, text="clicked")
+    # Inline buton tıklamalarını yakala
+    @bot.callback_query_handler(func=lambda call: call.data == "button_pressed")
+    def button_handler(call):
+        bot.send_message(call.message.chat.id, "denem1234 baba")
