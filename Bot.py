@@ -21,7 +21,7 @@ async def mesaj_yaniti(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Anlayamadım. Lütfen menüden bir seçim yap.")
 
 if __name__ == '__main__':
-    app = ApplicationBuilder().token("BURAYA_BOT_TOKENINI_YAPISTIR").build()
+    app = ApplicationBuilder().token("7656355783:AAF7_PXEx8YeCNxCeJiqvgv8lTBzlkf6AIw").build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mesaj_yaniti))
