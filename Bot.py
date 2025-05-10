@@ -1,10 +1,27 @@
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import os
+import json
 
-ADMIN_ID = 8121637254  # Kendi Telegram ID'nizi buraya girin
+DATA_FILE = "data.json"
+ADMIN_ID = 8121637254  # Telegram ID'nizi buraya girin
 
-# Dil verisi
+# JSON veri yükle/kaydet
+def load_data():
+    if not os.path.exists(DATA_FILE):
+        return {"langs": {}, "used_gift_codes": []}
+    with open(DATA_FILE, "r") as f:
+        return json.load(f)
+
+def save_data():
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+data = load_data()
+user_lang = data["langs"]
+used_gift_codes = data["used_gift_codes"]
+
+# Dil verileri
 LANGUAGES = {
     "tr": {
         "start": "Lütfen bir seçenek seç:",
@@ -16,7 +33,7 @@ LANGUAGES = {
         "choose_key": "Lütfen almak istediğiniz key'i seçin:",
         "gift_prompt": "Lütfen hediye kodunu yaz:",
         "gift_success": "Tebrikler! Kod doğru. 1 ürün ücretsiz kazandınız.",
-        "gift_fail": "Üzgünüm, geçersiz kod girdiniz.",
+        "gift_fail": "Üzgünüm, geçersiz veya kullanılmış kod.",
         "stats": "Bot İstatistikleri:\n\nToplam Kullanıcı: 128\nToplam Satış: 42\nAktif Key: 16",
         "restart_ok": "Bot yeniden başlatılıyor...",
         "restart_fail": "Bu komut yalnızca yöneticilere özeldir.",
@@ -24,7 +41,6 @@ LANGUAGES = {
         "invalid": "Geçerli bir seçenek seçin.",
         "lang_select": "Lütfen dil seçin:",
         "lang_menu": [["Türkçe 🇹🇷", "English 🇬🇧"]],
-        "about": "Bu bot @reallykrak tarafından geliştirilmiştir.\n\nSatış, anahtar yönetimi, hediye sistemi ve daha fazlası için tasarlanmıştır.",
     },
     "en": {
         "start": "Please select an option:",
@@ -36,7 +52,7 @@ LANGUAGES = {
         "choose_key": "Please choose the key you want:",
         "gift_prompt": "Please enter your gift code:",
         "gift_success": "Congrats! Code accepted. You've won 1 free item.",
-        "gift_fail": "Sorry, invalid gift code.",
+        "gift_fail": "Sorry, invalid or used gift code.",
         "stats": "Bot Stats:\n\nTotal Users: 128\nTotal Sales: 42\nActive Keys: 16",
         "restart_ok": "Restarting bot...",
         "restart_fail": "This command is for admins only.",
@@ -44,15 +60,12 @@ LANGUAGES = {
         "invalid": "Please select a valid option.",
         "lang_select": "Please select your language:",
         "lang_menu": [["Türkçe 🇹🇷", "English 🇬🇧"]],
-        "about": "This bot is developed by @reallykrak.\n\nIt's designed for selling, key management, gift system and more.",
     }
 }
 
-user_lang = {}
-
 # /start komutu
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
+    user_id = str(update.effective_user.id)
     if user_id not in user_lang:
         await update.message.reply_text("Lütfen dil seçin / Please select your language:",
                                         reply_markup=ReplyKeyboardMarkup([["Türkçe 🇹🇷", "English 🇬🇧"]], resize_keyboard=True))
@@ -61,24 +74,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(LANGUAGES[lang]["start"],
                                         reply_markup=ReplyKeyboardMarkup(LANGUAGES[lang]["menu"], resize_keyboard=True))
 
-# /about komutu
-async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    lang = user_lang.get(user_id, "tr")
-    await update.message.reply_text(LANGUAGES[lang]["about"])
-
 # Mesajları işle
 async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
+    user_id = str(update.effective_user.id)
     text = update.message.text.strip()
 
     if "Türkçe" in text:
         user_lang[user_id] = "tr"
+        save_data()
         await update.message.reply_text(LANGUAGES["tr"]["start"],
                                         reply_markup=ReplyKeyboardMarkup(LANGUAGES["tr"]["menu"], resize_keyboard=True))
         return
     elif "English" in text:
         user_lang[user_id] = "en"
+        save_data()
         await update.message.reply_text(LANGUAGES["en"]["start"],
                                         reply_markup=ReplyKeyboardMarkup(LANGUAGES["en"]["menu"], resize_keyboard=True))
         return
@@ -90,37 +99,34 @@ async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     l = LANGUAGES[lang]
-
-    if text == l["menu"][0][0]:  # Ödeme / Payment
-        buttons = [[InlineKeyboardButton("Papara ile Öde", url="https://papara.com")],
-                   [InlineKeyboardButton("BTC ile Öde", url="https://bitcoin.org")],
-                   [InlineKeyboardButton("Satıcıyla İletişim", url="https://t.me/reallykrak")]]
-        await update.message.reply_text(l["payment"], reply_markup=InlineKeyboardMarkup(buttons))
+    if text == l["menu"][0][0]:  # Payment
+        await update.message.reply_text(l["payment"])
 
     elif text == l["menu"][0][1]:  # Keys
         await update.message.reply_text(l["choose_key"],
                                         reply_markup=ReplyKeyboardMarkup(l["keys_menu"], resize_keyboard=True))
 
-    elif text == l["menu"][1][0]:  # Hediye / Gift
+    elif text == l["menu"][1][0]:  # Gift
         await update.message.reply_text(l["gift_prompt"])
         context.user_data['awaiting_gift'] = True
 
-    elif text == l["menu"][1][1]:  # İstatistik / Statistics
+    elif text == l["menu"][1][1]:  # Stats
         await update.message.reply_text(l["stats"])
 
-    elif text == l["menu"][2][0]:  # Botu güncelle / restart
-        if user_id == ADMIN_ID:
+    elif text == l["menu"][2][0]:  # Restart
+        if int(user_id) == ADMIN_ID:
             await update.message.reply_text(l["restart_ok"])
             os.system("bash restart.sh")
         else:
             await update.message.reply_text(l["restart_fail"])
 
-    elif text == l["menu"][2][1]:  # Dil değiştir
+    elif text == l["menu"][2][1]:  # Language
         user_lang.pop(user_id, None)
+        save_data()
         await update.message.reply_text(l["lang_select"],
                                         reply_markup=ReplyKeyboardMarkup(l["lang_menu"], resize_keyboard=True))
 
-    elif text in sum(l["keys_menu"], []):  # Key ürünleri
+    elif text in sum(l["keys_menu"], []):
         if "Ana Menü" in text or "Main Menu" in text:
             await update.message.reply_text(l["start"],
                                             reply_markup=ReplyKeyboardMarkup(l["menu"], resize_keyboard=True))
@@ -129,7 +135,9 @@ async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif context.user_data.get("awaiting_gift"):
         context.user_data['awaiting_gift'] = False
-        if text == "FREE123":
+        if text == "FREE123" and text not in used_gift_codes:
+            used_gift_codes.append(text)
+            save_data()
             await update.message.reply_text(l["gift_success"])
         else:
             await update.message.reply_text(l["gift_fail"])
@@ -141,7 +149,6 @@ async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == '__main__':
     app = ApplicationBuilder().token("7982398630:AAHlh2apXUtrdaOv44_P7sRka0HelKtFlnk").build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("about", about))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cevapla))
-    print("Bot dillerle birlikte çalışıyor.")
+    print("Bot çalışıyor ve veriler kalıcı.")
     app.run_polling()
