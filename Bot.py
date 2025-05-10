@@ -1,4 +1,4 @@
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import os
 
@@ -24,6 +24,7 @@ LANGUAGES = {
         "invalid": "Geçerli bir seçenek seçin.",
         "lang_select": "Lütfen dil seçin:",
         "lang_menu": [["Türkçe 🇹🇷", "English 🇬🇧"]],
+        "about": "Bu bot @reallykrak tarafından geliştirilmiştir.\n\nSatış, anahtar yönetimi, hediye sistemi ve daha fazlası için tasarlanmıştır.",
     },
     "en": {
         "start": "Please select an option:",
@@ -43,6 +44,7 @@ LANGUAGES = {
         "invalid": "Please select a valid option.",
         "lang_select": "Please select your language:",
         "lang_menu": [["Türkçe 🇹🇷", "English 🇬🇧"]],
+        "about": "This bot is developed by @reallykrak.\n\nIt's designed for selling, key management, gift system and more.",
     }
 }
 
@@ -58,6 +60,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lang = user_lang[user_id]
         await update.message.reply_text(LANGUAGES[lang]["start"],
                                         reply_markup=ReplyKeyboardMarkup(LANGUAGES[lang]["menu"], resize_keyboard=True))
+
+# /about komutu
+async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    lang = user_lang.get(user_id, "tr")
+    await update.message.reply_text(LANGUAGES[lang]["about"])
 
 # Mesajları işle
 async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -81,10 +89,13 @@ async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                         reply_markup=ReplyKeyboardMarkup([["Türkçe 🇹🇷", "English 🇬🇧"]], resize_keyboard=True))
         return
 
-    # Menü seçenekleri
     l = LANGUAGES[lang]
+
     if text == l["menu"][0][0]:  # Ödeme / Payment
-        await update.message.reply_text(l["payment"])
+        buttons = [[InlineKeyboardButton("Papara ile Öde", url="https://papara.com")],
+                   [InlineKeyboardButton("BTC ile Öde", url="https://bitcoin.org")],
+                   [InlineKeyboardButton("Satıcıyla İletişim", url="https://t.me/reallykrak")]]
+        await update.message.reply_text(l["payment"], reply_markup=InlineKeyboardMarkup(buttons))
 
     elif text == l["menu"][0][1]:  # Keys
         await update.message.reply_text(l["choose_key"],
@@ -130,6 +141,7 @@ async def cevapla(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == '__main__':
     app = ApplicationBuilder().token("7982398630:AAHlh2apXUtrdaOv44_P7sRka0HelKtFlnk").build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("about", about))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, cevapla))
     print("Bot dillerle birlikte çalışıyor.")
     app.run_polling()
