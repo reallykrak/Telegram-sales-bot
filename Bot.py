@@ -107,6 +107,23 @@ def handle_all_messages(message):
     lang = get_user_language(user.id)
     if message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
         change_language(message)
+    elif message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
+        if lang == "tr":
+            bot.send_message(message.chat.id,
+                "=== 🌟 Ödeme Bilgileri 🌟 ===\n\n"
+                "• Papara\n"
+                "• Ziraat\n"
+                "• Shopier\n\n"
+                "İletişim • @ZEUS_BABA12\n"
+                "🔥 Not - Ciddi Alıcı Değilseniz Yazmayın Lütfen.")
+        else:
+            bot.send_message(message.chat.id,
+                "=== 🌟 Payment Information 🌟 ===\n\n"
+                "• Papara\n"
+                "• Ziraat\n"
+                "• Shopier\n\n"
+                "Contact • @ZEUS_BABA12\n"
+                "🔥 Note - Please do not contact if you are not a serious buyer.")
     else:
         bot.send_message(message.chat.id, LANGUAGES[lang]["start"], reply_markup=get_keyboard(lang))
 
