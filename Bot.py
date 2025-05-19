@@ -44,8 +44,8 @@ LANGUAGES = {
         "start": "Lütfen bir seçenek seç:",
         "language_changed": "Dil başarıyla Türkçe olarak ayarlandı.",
         "menu": [
-            ["👥 Referans & Bakiye 💰"],
-            ["🎁 Bonus", "❌ Logo Menu", "⚙️ İsim Ayarla"],
+            ["🌟 Ödeme Seçenekleri 🌟"],
+            ["🎁 Bonus", "💨 Key Menü", "🔥 Komutlar"],
             ["🎁 Hediye Kodu", "📊 İstatistikler"],
             ["🔄 Botu Güncelle"],
             ["🌐 Dil Değiştir", "❓ Yardım"]
@@ -55,8 +55,8 @@ LANGUAGES = {
         "start": "Please select an option:",
         "language_changed": "Language changed to English successfully.",
         "menu": [
-            ["👥 Referral & Balance 💰"],
-            ["🎁 Bonus", "❌ Logo Menu", "⚙️ Set Name"],
+            ["🌟 Payment Options 🌟"],
+            ["🎁 Bonus", "💨 Key Menu", "🔥 Commands"],
             ["🎁 Gift Code", "📊 Statistics"],
             ["🔄 Update Bot"],
             ["🌐 Change Language", "❓ Help"]
