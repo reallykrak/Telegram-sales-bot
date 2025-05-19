@@ -4,7 +4,7 @@ import os
 import json
 from datetime import datetime
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = "7982398630:AAHCt_rIF2Gs3u_nrliVE7iHlfO-AmzgUho"
 ADMIN_ID = 8121637254
 
 DATA_FILE = "data.json"
