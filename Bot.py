@@ -9,9 +9,6 @@ ADMIN_ID = 8121637254
 
 DATA_FILE = "data.json"
 
-USER_LOG = "user_log.txt"
-PURCHASE_LOG = "purchase_log.txt"
-
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # Veri yönetimi
