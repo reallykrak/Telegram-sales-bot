@@ -26,16 +26,6 @@ data = load_data()
 used_gift_codes = data.get("used_gift_codes", [])
 user_languages = data.get("languages", {})
 
-os.makedirs(LOG_DIR, exist_ok=True)
-
-def log_user(user):
-    with open(USER_LOG, "a", encoding="utf-8") as f:
-        f.write(f"{datetime.now()} - {user.id} | {user.first_name}\n")
-
-def log_purchase(user, item):
-    with open(PURCHASE_LOG, "a", encoding="utf-8") as f:
-        f.write(f"{datetime.now()} - {user.id} | {user.first_name} satın aldı: {item}\n")
-
 LANGUAGES = {
     "tr": {
         "start": "Lütfen bir seçenek seç:",
@@ -78,7 +68,6 @@ def get_keyboard(lang):
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
     user = message.from_user
-    log_user(user)
     lang = get_user_language(user.id)
     bot.send_message(
         message.chat.id,
@@ -103,7 +92,6 @@ def handle_all_messages(message):
     user = message.from_user
     lang = get_user_language(user.id)
 
-    # Dil değiştirme zaten handler'da var, buraya düşerse sadece menü göster
     if message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
         change_language(message)
     elif message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
@@ -151,7 +139,6 @@ def reset_codes(message):
         save_data()
         bot.send_message(message.chat.id, "Kullanılmış kodlar sıfırlandı.")
 
-# --- Bonus butonuna basınca cevap ---
 @bot.message_handler(func=lambda m: m.text in ["🎁 Bonus"])
 def bonus_response(message):
     user = message.from_user
@@ -162,7 +149,6 @@ def bonus_response(message):
     else:
         bot.send_message(message.chat.id, "Today's bonus: 1-day VIP key! Come back tomorrow.")
 
-# --- Hediye Kodu sistemi ---
 pending_gift_users = set()
 
 @bot.message_handler(func=lambda m: m.text in ["🎁 Hediye Kodu", "🎁 Gift Code"])
@@ -181,7 +167,6 @@ def process_gift_code(message):
     user_id = message.from_user.id
     code = message.text.strip().lower()
 
-    # Komut girilirse iptal et
     if code.startswith("/"):
         bot.reply_to(message, "Lütfen geçerli bir hediye kodu girin, komut değil.")
         return
@@ -200,13 +185,9 @@ def process_gift_code(message):
             f.write("\n".join(codes) + "\n")
 
         bot.reply_to(message, f"Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY")
-        log_purchase(message.from_user, f"Hediye kodu kullandı: {code}")
-
-        # Kullanılmış kodları da kaydet
         used_gift_codes.append(code)
         data["used_gift_codes"] = used_gift_codes
         save_data()
-
     else:
         bot.reply_to(message, "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış.")
 
