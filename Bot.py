@@ -8,9 +8,6 @@ BOT_TOKEN = "7982398630:AAHCt_rIF2Gs3u_nrliVE7iHlfO-AmzgUho"
 ADMIN_ID = 8121637254
 
 DATA_FILE = "data.json"
-LOG_DIR = "logs"
-USER_LOG = os.path.join(LOG_DIR, "users.log")
-PURCHASE_LOG = os.path.join(LOG_DIR, "purchases.log")
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
