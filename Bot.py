@@ -87,6 +87,33 @@ def change_language(message):
         reply_markup=get_keyboard(new_lang)
     )
 
+@bot.message_handler(func=lambda m: True)
+def handle_all_messages(message):
+    user = message.from_user
+    lang = get_user_language(user.id)
+
+    if message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
+        change_language(message)
+    elif message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
+        if lang == "tr":
+            bot.send_message(message.chat.id,
+                "=== 🌟 Ödeme Bilgileri 🌟 ===\n\n"
+                "• Papara\n"
+                "• Ziraat\n"
+                "• Shopier\n\n"
+                "İletişim • @ZEUS_BABA12\n"
+                "🔥 Not - Ciddi Alıcı Değilseniz Yazmayın Lütfen.")
+        else:
+            bot.send_message(message.chat.id,
+                "=== 🌟 Payment Information 🌟 ===\n\n"
+                "• Papara\n"
+                "• Ziraat\n"
+                "• Shopier\n\n"
+                "Contact • @ZEUS_BABA12\n"
+                "🔥 Note - Please do not contact if you are not a serious buyer.")
+    else:
+        bot.send_message(message.chat.id, LANGUAGES[lang]["start"], reply_markup=get_keyboard(lang))
+
 @bot.message_handler(commands=["admin"])
 def admin_panel(message):
     if message.from_user.id == ADMIN_ID:
@@ -138,56 +165,37 @@ def ask_for_gift_code(message):
 @bot.message_handler(func=lambda m: m.from_user.id in pending_gift_users and not m.text.startswith("/"))
 def process_gift_code(message):
     user_id = message.from_user.id
+    lang = get_user_language(user_id)
     code = message.text.strip().lower()
 
     if not os.path.exists("gift.txt"):
-        bot.reply_to(message, "Kod listesi bulunamadı.")
+        msg = "Kod listesi bulunamadı." if lang == "tr" else "Code list not found."
+        bot.reply_to(message, msg)
         pending_gift_users.discard(user_id)
         return
 
     with open("gift.txt", "r", encoding="utf-8") as f:
         codes = [line.strip().lower() for line in f if line.strip()]
 
-    if code in codes:
+    if code in used_gift_codes:
+        msg = "Bu kod daha önce kullanılmış." if lang == "tr" else "This code has already been used."
+        bot.reply_to(message, msg)
+    elif code in codes:
         codes.remove(code)
         with open("gift.txt", "w", encoding="utf-8") as f:
             f.write("\n".join(codes) + "\n")
 
-        bot.reply_to(message, f"Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY")
+        success_msg = "Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY" if lang == "tr" else "Congratulations! The code is valid. Your key: FLEXSTAR-3DAY"
+        bot.reply_to(message, success_msg)
+
         used_gift_codes.append(code)
         data["used_gift_codes"] = used_gift_codes
         save_data()
     else:
-        bot.reply_to(message, "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış.")
+        fail_msg = "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış." if lang == "tr" else "Sorry, this code is invalid or has already been used."
+        bot.reply_to(message, fail_msg)
 
     pending_gift_users.discard(user_id)
-
-@bot.message_handler(func=lambda m: True)
-def handle_all_messages(message):
-    user = message.from_user
-    lang = get_user_language(user.id)
-
-    if message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
-        change_language(message)
-    elif message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
-        if lang == "tr":
-            bot.send_message(message.chat.id,
-                "=== 🌟 Ödeme Bilgileri 🌟 ===\n\n"
-                "• Papara\n"
-                "• Ziraat\n"
-                "• Shopier\n\n"
-                "İletişim • @ZEUS_BABA12\n"
-                "🔥 Not - Ciddi Alıcı Değilseniz Yazmayın Lütfen.")
-        else:
-            bot.send_message(message.chat.id,
-                "=== 🌟 Payment Information 🌟 ===\n\n"
-                "• Papara\n"
-                "• Ziraat\n"
-                "• Shopier\n\n"
-                "Contact • @ZEUS_BABA12\n"
-                "🔥 Note - Please do not contact if you are not a serious buyer.")
-    else:
-        bot.send_message(message.chat.id, LANGUAGES[lang]["start"], reply_markup=get_keyboard(lang))
 
 print("Bot çalışıyor...")
 bot.polling()
