@@ -151,5 +151,55 @@ def reset_codes(message):
         save_data()
         bot.send_message(message.chat.id, "Kullanılmış kodlar sıfırlandı.")
 
+# --- Bonus butonuna basınca cevap ---
+@bot.message_handler(func=lambda m: m.text in ["🎁 Bonus"])
+def bonus_response(message):
+    user = message.from_user
+    lang = get_user_language(user.id)
+
+    if lang == "tr":
+        bot.send_message(message.chat.id, "Bugünün bonusu: 1 günlük VIP key! Yarın tekrar gel.")
+    else:
+        bot.send_message(message.chat.id, "Today's bonus: 1-day VIP key! Come back tomorrow.")
+
+# --- Hediye Kodu sistemi ---
+pending_gift_users = set()
+
+@bot.message_handler(func=lambda m: m.text in ["🎁 Hediye Kodu", "🎁 Gift Code"])
+def ask_for_gift_code(message):
+    user = message.from_user
+    lang = get_user_language(user.id)
+    pending_gift_users.add(user.id)
+
+    if lang == "tr":
+        bot.send_message(message.chat.id, "Lütfen size verilen hediye kodunu girin:")
+    else:
+        bot.send_message(message.chat.id, "Please enter your gift code:")
+
+@bot.message_handler(func=lambda m: m.from_user.id in pending_gift_users)
+def process_gift_code(message):
+    user_id = message.from_user.id
+    code = message.text.strip().lower()
+
+    if not os.path.exists("gift.txt"):
+        bot.reply_to(message, "Kod listesi bulunamadı.")
+        pending_gift_users.discard(user_id)
+        return
+
+    with open("gift.txt", "r") as f:
+        codes = [line.strip().lower() for line in f.readlines()]
+
+    if code in codes:
+        codes.remove(code)
+        with open("gift.txt", "w") as f:
+            f.write("\n".join(codes))
+
+        bot.reply_to(message, f"Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY")
+        log_purchase(message.from_user, f"Hediye kodu kullandı: {code}")
+    else:
+        bot.reply_to(message, "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış.")
+
+    pending_gift_users.discard(user_id)
+
 print("Bot çalışıyor...")
 bot.polling()
