@@ -9,31 +9,34 @@ ADMIN_ID = 8121637254
 
 DATA_FILE = "data.json"
 
+USER_LOG = "user_log.txt"
+PURCHASE_LOG = "purchase_log.txt"
+
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # Veri yönetimi
 def load_data():
     if not os.path.exists(DATA_FILE):
         return {"used_gift_codes": [], "languages": {}}
-    with open(DATA_FILE, "r") as f:
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def save_data():
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 data = load_data()
-used_gift_codes = data["used_gift_codes"]
+used_gift_codes = data.get("used_gift_codes", [])
 user_languages = data.get("languages", {})
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
 def log_user(user):
-    with open(USER_LOG, "a") as f:
+    with open(USER_LOG, "a", encoding="utf-8") as f:
         f.write(f"{datetime.now()} - {user.id} | {user.first_name}\n")
 
 def log_purchase(user, item):
-    with open(PURCHASE_LOG, "a") as f:
+    with open(PURCHASE_LOG, "a", encoding="utf-8") as f:
         f.write(f"{datetime.now()} - {user.id} | {user.first_name} satın aldı: {item}\n")
 
 LANGUAGES = {
@@ -102,6 +105,8 @@ def change_language(message):
 def handle_all_messages(message):
     user = message.from_user
     lang = get_user_language(user.id)
+
+    # Dil değiştirme zaten handler'da var, buraya düşerse sadece menü göster
     if message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
         change_language(message)
     elif message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
@@ -145,6 +150,7 @@ def used_codes(message):
 def reset_codes(message):
     if message.from_user.id == ADMIN_ID:
         data["used_gift_codes"] = []
+        used_gift_codes.clear()
         save_data()
         bot.send_message(message.chat.id, "Kullanılmış kodlar sıfırlandı.")
 
@@ -164,9 +170,9 @@ pending_gift_users = set()
 
 @bot.message_handler(func=lambda m: m.text in ["🎁 Hediye Kodu", "🎁 Gift Code"])
 def ask_for_gift_code(message):
-    user = message.from_user
-    lang = get_user_language(user.id)
-    pending_gift_users.add(user.id)
+    user_id = message.from_user.id
+    lang = get_user_language(user_id)
+    pending_gift_users.add(user_id)
 
     if lang == "tr":
         bot.send_message(message.chat.id, "Lütfen size verilen hediye kodunu girin:")
@@ -178,21 +184,32 @@ def process_gift_code(message):
     user_id = message.from_user.id
     code = message.text.strip().lower()
 
+    # Komut girilirse iptal et
+    if code.startswith("/"):
+        bot.reply_to(message, "Lütfen geçerli bir hediye kodu girin, komut değil.")
+        return
+
     if not os.path.exists("gift.txt"):
         bot.reply_to(message, "Kod listesi bulunamadı.")
         pending_gift_users.discard(user_id)
         return
 
-    with open("gift.txt", "r") as f:
-        codes = [line.strip().lower() for line in f.readlines()]
+    with open("gift.txt", "r", encoding="utf-8") as f:
+        codes = [line.strip().lower() for line in f if line.strip()]
 
     if code in codes:
         codes.remove(code)
-        with open("gift.txt", "w") as f:
-            f.write("\n".join(codes))
+        with open("gift.txt", "w", encoding="utf-8") as f:
+            f.write("\n".join(codes) + "\n")
 
         bot.reply_to(message, f"Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY")
         log_purchase(message.from_user, f"Hediye kodu kullandı: {code}")
+
+        # Kullanılmış kodları da kaydet
+        used_gift_codes.append(code)
+        data["used_gift_codes"] = used_gift_codes
+        save_data()
+
     else:
         bot.reply_to(message, "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış.")
 
