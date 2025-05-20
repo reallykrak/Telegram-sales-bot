@@ -11,7 +11,6 @@ DATA_FILE = "data.json"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Veri yönetimi
 def load_data():
     if not os.path.exists(DATA_FILE):
         return {"used_gift_codes": [], "languages": {}}
@@ -92,9 +91,7 @@ def handle_all_messages(message):
     user = message.from_user
     lang = get_user_language(user.id)
 
-    if message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
-        change_language(message)
-    elif message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
+    if message.text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
         if lang == "tr":
             bot.send_message(message.chat.id,
                 "=== 🌟 Ödeme Bilgileri 🌟 ===\n\n"
@@ -111,7 +108,19 @@ def handle_all_messages(message):
                 "• Shopier\n\n"
                 "Contact • @ZEUS_BABA12\n"
                 "🔥 Note - Please do not contact if you are not a serious buyer.")
+    elif message.text in ["🎁 Bonus"]:
+        if lang == "tr":
+            bot.send_message(message.chat.id, "Bugünün bonusu: 1 günlük VIP key! Yarın tekrar gel.")
+        else:
+            bot.send_message(message.chat.id, "Today's bonus: 1-day VIP key! Come back tomorrow.")
+    elif message.text in ["🎁 Hediye Kodu", "🎁 Gift Code"]:
+        pending_gift_users.add(user.id)
+        prompt = "Lütfen size verilen hediye kodunu girin:" if lang == "tr" else "Please enter your gift code:"
+        bot.send_message(message.chat.id, prompt)
+    elif message.text in ["🌐 Dil Değiştir", "🌐 Change Language"]:
+        change_language(message)
     else:
+        # Yalnızca tek dilde cevap döndürülür
         bot.send_message(message.chat.id, LANGUAGES[lang]["start"], reply_markup=get_keyboard(lang))
 
 @bot.message_handler(commands=["admin"])
@@ -139,28 +148,7 @@ def reset_codes(message):
         save_data()
         bot.send_message(message.chat.id, "Kullanılmış kodlar sıfırlandı.")
 
-@bot.message_handler(func=lambda m: m.text in ["🎁 Bonus"])
-def bonus_response(message):
-    user = message.from_user
-    lang = get_user_language(user.id)
-
-    if lang == "tr":
-        bot.send_message(message.chat.id, "Bugünün bonusu: 1 günlük VIP key! Yarın tekrar gel.")
-    else:
-        bot.send_message(message.chat.id, "Today's bonus: 1-day VIP key! Come back tomorrow.")
-
 pending_gift_users = set()
-
-@bot.message_handler(func=lambda m: m.text in ["🎁 Hediye Kodu", "🎁 Gift Code"])
-def ask_for_gift_code(message):
-    user_id = message.from_user.id
-    lang = get_user_language(user_id)
-    pending_gift_users.add(user_id)
-
-    if lang == "tr":
-        bot.send_message(message.chat.id, "Lütfen size verilen hediye kodunu girin:")
-    else:
-        bot.send_message(message.chat.id, "Please enter your gift code:")
 
 @bot.message_handler(func=lambda m: m.from_user.id in pending_gift_users and not m.text.startswith("/"))
 def process_gift_code(message):
