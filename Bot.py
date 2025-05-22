@@ -9,7 +9,6 @@ DATA_FILE = "data.json"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Veriler
 def load_data():
     if not os.path.exists(DATA_FILE):
         return {"used_gift_codes": [], "languages": {}}
@@ -25,7 +24,6 @@ used_gift_codes = data.get("used_gift_codes", [])
 user_languages = data.get("languages", {})
 pending_gift_users = set()
 
-# Dil paketleri
 LANGUAGES = {
     "tr": {
         "start": "Lütfen bir seçenek seç:",
@@ -35,6 +33,8 @@ LANGUAGES = {
         "code_valid": "Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY",
         "code_invalid": "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış.",
         "no_gift_file": "Kod listesi bulunamadı.",
+        "logo_menu": "Lütfen bir logo seçin:",
+        "main_menu": "Ana menüye dönüldü.",
     },
     "en": {
         "start": "Please select an option:",
@@ -44,6 +44,8 @@ LANGUAGES = {
         "code_valid": "Congratulations! The code is valid. Your key: FLEXSTAR-3DAY",
         "code_invalid": "Sorry, this code is invalid or has already been used.",
         "no_gift_file": "Code list not found.",
+        "logo_menu": "Please choose a logo option:",
+        "main_menu": "Returned to main menu.",
     }
 }
 
@@ -71,6 +73,26 @@ def get_keyboard(lang):
             ["🎁 Gift Code", "📊 Statistics"],
             ["🔄 Update Bot"],
             ["🌐 Change Language", "❓ Help"]
+        ]
+    }
+    for row in buttons[lang]:
+        keyboard.row(*row)
+    return keyboard
+
+def get_logo_keyboard(lang):
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    buttons = {
+        "tr": [
+            ["🤖 Ai Logo Oluştur"],
+            ["❌ Logo 1", "⚽ Logo 2"],
+            ["🧿 Logo 3", "♀️ Logo 4", "👾 Logo 5"],
+            ["🏠 Ana Menü"]
+        ],
+        "en": [
+            ["🤖 Create Ai Logo"],
+            ["❌ Logo 1", "⚽ Logo 2"],
+            ["🧿 Logo 3", "♀️ Logo 4", "👾 Logo 5"],
+            ["🏠 Main Menu"]
         ]
     }
     for row in buttons[lang]:
@@ -123,6 +145,21 @@ def process_gift_code(message):
 
     pending_gift_users.discard(user_id)
 
+@bot.message_handler(func=lambda m: m.text in ["💨 Key Menü", "💨 Key Menu"])
+def key_menu(message):
+    lang = get_user_language(message.from_user.id)
+    bot.send_message(message.chat.id, LANGUAGES[lang]["logo_menu"], reply_markup=get_logo_keyboard(lang))
+
+@bot.message_handler(func=lambda m: m.text in ["🏠 Ana Menü", "🏠 Main Menu"])
+def back_to_main_menu(message):
+    lang = get_user_language(message.from_user.id)
+    bot.send_message(message.chat.id, LANGUAGES[lang]["main_menu"], reply_markup=get_keyboard(lang))
+
+@bot.message_handler(func=lambda m: m.text.startswith("❌ Logo 1") or m.text.startswith("⚽ Logo 2") or m.text.startswith("🧿 Logo 3") or m.text.startswith("♀️ Logo 4") or m.text.startswith("👾 Logo 5") or m.text.startswith("🤖"))
+def logo_selection(message):
+    lang = get_user_language(message.from_user.id)
+    bot.send_message(message.chat.id, f"{message.text} seçildi! (fiyat: sen ayarla)")
+
 @bot.message_handler(func=lambda m: True)
 def general_handler(message):
     user_id = message.from_user.id
@@ -130,17 +167,13 @@ def general_handler(message):
     text = message.text
 
     if text in ["🌟 Ödeme Seçenekleri 🌟", "🌟 Payment Options 🌟"]:
-        if lang == "tr":
-            bot.send_message(message.chat.id, "• Papara\n• Ziraat\n• Shopier\nİletişim: @ZEUS_BABA12")
-        else:
-            bot.send_message(message.chat.id, "• Papara\n• Ziraat\n• Shopier\nContact: @ZEUS_BABA12")
+        msg = "• Papara\n• Ziraat\n• Shopier\nİletişim: @ZEUS_BABA12" if lang == "tr" else "• Papara\n• Ziraat\n• Shopier\nContact: @ZEUS_BABA12"
+        bot.send_message(message.chat.id, msg)
     elif text in ["🎁 Bonus"]:
-        if lang == "tr":
-            bot.send_message(message.chat.id, "Bugünün bonusu: 1 günlük VIP key! Yarın tekrar gel.")
-        else:
-            bot.send_message(message.chat.id, "Today's bonus: 1-day VIP key! Come back tomorrow.")
+        msg = "Bugünün bonusu: 1 günlük VIP key! Yarın tekrar gel." if lang == "tr" else "Today's bonus: 1-day VIP key! Come back tomorrow."
+        bot.send_message(message.chat.id, msg)
     elif text in ["🔄 Botu Güncelle", "🔄 Update Bot"]:
-        bot.send_message(message.chat.id, "Bot şu anda güncel.")
+        bot.send_message(message.chat.id, "Bot şu anda güncel." if lang == "tr" else "Bot is up to date.")
     elif text in ["🔥 Komutlar", "🔥 Commands"]:
         bot.send_message(message.chat.id, "/start - Botu başlat\n/dil - Dili değiştir")
     else:
