@@ -37,7 +37,7 @@ LANGUAGES = {
         "main_menu": "Ana menüye dönüldü.",
     },
     "en": {
-        "start": "Please select an option:",
+        "start": "🟢 𝙋𝙡𝙚𝙖𝙨𝙚 𝙨𝙚𝙡𝙚𝙘𝙩 𝙖𝙣 𝙤𝙥𝙩𝙞𝙤𝙣:",
         "language_changed": "Language changed to English successfully.",
         "prompt_gift": "Please enter your gift code:",
         "code_used": "This code has already been used.",
