@@ -26,9 +26,9 @@ pending_gift_users = set()
 
 LANGUAGES = {
     "tr": {
-        "start": "Lütfen bir seçenek seç:",
-        "language_changed": "Dil başarıyla Türkçe olarak ayarlandı.",
-        "prompt_gift": "Lütfen size verilen hediye kodunu girin:",
+        "start": "🟢 𝙇𝙪𝙩𝙛𝙚𝙣 𝘽𝙞𝙧 𝙎𝙚𝙘𝙚𝙣𝙚𝙠 𝙎𝙚𝙘𝙞𝙣:",
+        "language_changed": "🇹🇷 𝘿𝙞𝙡 𝙗𝙖𝙨𝙖𝙧𝙞𝙮𝙡𝙖 𝙏𝙪𝙧𝙠𝙘𝙚 𝙤𝙡𝙖𝙧𝙖𝙠 𝙖𝙮𝙖𝙧𝙡𝙖𝙣𝙙ı.",
+        "prompt_gift": "🎁 𝙇𝙪𝙩𝙛𝙚𝙣 𝙨𝙞𝙯𝙚 𝙫𝙚𝙧𝙞𝙡𝙚𝙣 𝙝𝙚𝙙𝙞𝙮𝙚 𝙠𝙤𝙙𝙪𝙣𝙪 𝙜𝙞𝙧𝙞𝙣:",
         "code_used": "Bu kod daha önce kullanılmış.",
         "code_valid": "Tebrikler! Kod doğru. Key'in: FLEXSTAR-3DAY",
         "code_invalid": "Üzgünüm, bu kod geçersiz veya daha önce kullanılmış.",
@@ -38,8 +38,8 @@ LANGUAGES = {
     },
     "en": {
         "start": "🟢 𝙋𝙡𝙚𝙖𝙨𝙚 𝙨𝙚𝙡𝙚𝙘𝙩 𝙖𝙣 𝙤𝙥𝙩𝙞𝙤𝙣:",
-        "language_changed": "Language changed to English successfully.",
-        "prompt_gift": "Please enter your gift code:",
+        "language_changed": "🇺🇸 𝙇𝙖𝙣𝙜𝙪𝙖𝙜𝙚 𝙘𝙝𝙖𝙣𝙜𝙚𝙙 𝙩𝙤 𝙀𝙣𝙜𝙡𝙞𝙨𝙝 𝙨𝙪𝙘𝙘𝙚𝙨𝙨𝙛𝙪𝙡𝙡𝙮.",
+        "prompt_gift": "🎁 𝙋𝙡𝙚𝙖𝙨𝙚 𝙚𝙣𝙩𝙚𝙧 𝙮𝙤𝙪𝙧 𝙜𝙞𝙛𝙩 𝙘𝙤𝙙𝙚:",
         "code_used": "This code has already been used.",
         "code_valid": "Congratulations! The code is valid. Your key: FLEXSTAR-3DAY",
         "code_invalid": "Sorry, this code is invalid or has already been used.",
